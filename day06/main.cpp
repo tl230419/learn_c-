@@ -345,6 +345,7 @@ int main()
 }
 */
 
+/*
 class Person
 {
     Person() =default;
@@ -357,5 +358,189 @@ class Person
 
 int main()
 {
+    return 0;
+}
+*/
+
+// day06_02_2_1
+/*
+#include <memory>
+
+using namespace std;
+
+int main()
+{
+    unique_ptr<int> p(new int(10));
+    cout << *p << endl;
+
+    unique_ptr<int> p3 = move(p);
+    cout << *p3 << endl;
+
+    //cout << *p << endl;
+
+    p3.reset();
+
+    p3.reset(new int(6));
+    int *p4 = p3.get();
+    cout << "指针指向的值是：" << *p4 << endl;
+
+    return 0;
+}
+*/
+
+// day06_02_2_2
+/*
+#include <memory>
+
+using namespace std;
+
+class Stu
+{
+public:
+    Stu()
+    {
+        cout << "执行构造函数" << endl;
+    }
+
+    ~Stu()
+    {
+        cout << "执行析构函数" << endl;
+    }
+};
+
+int main()
+{
+    shared_ptr<Stu> s1(new Stu());
+    cout << "count = " << s1.use_count() << endl;
+
+    shared_ptr<Stu> s2 = s1;
+    s1.reset();
+    s2.reset();
+
+    return 0;
+}
+*/
+
+// day06_02_2_3
+/*
+#include <memory>
+
+using namespace std;
+
+class Son;
+
+class Father
+{
+public:
+    Father()
+    {
+        cout << "Father 构造" << endl;
+    }
+
+    ~Father()
+    {
+        cout << "Father 析构" << endl;
+    }
+
+    void set_son(shared_ptr<Son> s)
+    {
+        son = s;
+    }
+
+private:
+    shared_ptr<Son> son;
+};
+
+class Son
+{
+public:
+    Son()
+    {
+        cout << "Son 构造" << endl;
+    }
+
+    ~Son()
+    {
+        cout << "Son 析构" << endl;
+    }
+
+    void set_father(shared_ptr<Father> f)
+    {
+        father = f;
+    }
+
+private:
+    shared_ptr<Father> father;
+};
+
+int main()
+{
+    shared_ptr<Father> f(new Father());
+    shared_ptr<Son> s(new Son());
+    f->set_son(s);
+    s->set_father(f);
+
+    return 0;
+}
+*/
+
+// day06_02_2_4
+#include <memory>
+
+using namespace std;
+
+class Son;
+
+class Father
+{
+public:
+    Father()
+    {
+        cout << "Father 构造" << endl;
+    }
+
+    ~Father()
+    {
+        cout << "Father 析构" << endl;
+    }
+
+    void set_son(shared_ptr<Son> s)
+    {
+        son = s;
+    }
+
+private:
+    shared_ptr<Son> son;
+};
+
+class Son
+{
+public:
+    Son()
+    {
+        cout << "Son 构造" << endl;
+    }
+
+    ~Son()
+    {
+        cout << "Son 析构" << endl;
+    }
+
+    void set_father(shared_ptr<Father> f)
+    {
+        father = f;
+    }
+
+private:
+    weak_ptr<Father> father;
+};
+
+int main()
+{
+    shared_ptr<Father> f(new Father());
+    shared_ptr<Son> s(new Son());
+    f->set_son(s);
+    s->set_father(f);
+
     return 0;
 }
