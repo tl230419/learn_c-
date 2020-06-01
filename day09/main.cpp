@@ -6,6 +6,8 @@
 #include <queue>
 #include <list>
 #include <condition_variable>
+#include <future>
+#include <list>
 
 using namespace std;
 
@@ -407,6 +409,8 @@ int main()
 }
 */
 
+// day09_01_7_5_3_b
+/*
 class Box
 {
 
@@ -512,6 +516,443 @@ int main()
 
     t1.join();
     t2.join();
+
+    return 0;
+}
+*/
+
+// day09_01_7_6
+/*
+int add(int a, int b)
+{
+    return a + b;
+}
+
+void print_i()
+{
+    for (int i = 0; i < 10; i++)
+    {
+        cout << "i == " << i << endl;
+        usleep(1000 * 1000 * i);
+    }
+}
+
+int main()
+{
+    future<int> future1 = async(add, 3, 4);
+    auto fut1 = async(std::launch::async|std::launch::deferred, add, 3 ,4);
+    int result = future1.get();
+    cout << "result = " << result << endl;
+
+    async(launch::async, print_i);
+
+    std::future<void> f = async(launch::async, print_i);
+    f.get();
+
+    future<void> f2 = async(launch::deferred, print_i);
+    f2.get();
+
+    return 0;
+}
+*/
+
+// day09_02_2_1
+/*
+class Stu
+{
+public:
+    static Stu *get_instance()
+    {
+        if (instance == nullptr)
+        {
+            instance = new Stu();
+        }
+        return instance;
+    }
+
+private:
+    Stu()
+    {
+
+    }
+
+    static Stu *instance;
+};
+*/
+
+// day09_02_2_2
+/*
+class Stu
+{
+public:
+    static Stu *get_instance()
+    {
+        return instance;
+    }
+
+    ~Stu()
+    {
+        cout << "执行析构函数" << endl;
+    }
+
+private:
+    Stu()
+    {
+        cout << "执行构造函数" << endl;
+    }
+
+    static Stu *instance;
+};
+
+Stu *Stu::instance = nullptr;
+
+int main()
+{
+    Stu* s1 = Stu::get_instance();
+    Stu* s2 = Stu::get_instance();
+
+    cout << (s1 == s2) << endl;
+
+    return 0;
+}
+*/
+
+// day09_02_4/5/6
+/*
+mutex m;
+
+class Stu
+{
+public:
+    static Stu *get_instance()
+    {
+        if (instance == nullptr)
+        {
+            m.lock();
+            if (instance == nullptr)
+            {
+                instance = new Stu();
+            }
+            m.unlock();
+        }
+        return instance;
+    }
+
+private:
+    Stu()
+    {
+
+    }
+
+    static Stu *instance;
+};
+
+Stu * Stu::instance = nullptr;
+
+int main()
+{
+    Stu* s1 = nullptr;
+    Stu* s2 = nullptr;
+
+    thread t1([&]{
+        s1 = Stu::get_instance();
+    });
+    thread t2([&]{
+        s2 = Stu::get_instance();
+    });
+
+    t1.join();
+    t2.join();
+
+    cout << (s1 == s2) << endl;
+
+    return 0;
+}
+*/
+
+// day09_02_3_1
+/*
+class Observer;
+
+class Subject
+{
+public:
+    Observer *ob;
+
+    void add_observer(Observer *ob)
+    {
+        this->ob = ob;
+    }
+
+    void notify();
+};
+
+class Observer
+{
+public:
+    Subject *sj;
+
+    void add_subject(Subject *sj)
+    {
+        this->sj = sj;
+    }
+
+    void update()
+    {
+        cout << "观察者收到通知了。" << endl;
+    }
+};
+
+void Subject::notify()
+{
+    ob->update();
+}
+
+int main()
+{
+    Observer ob;
+    Subject sj;
+
+    ob.add_subject(&sj);
+    sj.add_observer(&ob);
+
+    int number = 0;
+    while (1)
+    {
+        number++;
+        cout << "number = " << number << endl;
+        if (number % 5 == 0)
+        {
+            sj.notify();
+        }
+        this_thread::sleep_for(chrono::seconds(1));
+    }
+
+    return 0;
+}
+*/
+
+// day09_02_3_2
+/*
+class Observer;
+
+class Subject
+{
+public:
+    list<Observer *> ob_list;
+
+    void add_observer(Observer *ob)
+    {
+        ob_list.push_front(ob);
+    }
+
+    void remove_observer(Observer *ob)
+    {
+        ob_list.remove(ob);
+    }
+
+    void notify();
+};
+
+class Observer
+{
+public:
+    Subject *sj;
+    string name;
+
+    Observer(string name)
+        : name(name)
+    {
+
+    }
+
+    ~Observer()
+    {
+        cout << name << " 了执行析构函数" << endl;
+        sj->remove_observer(this);
+        sj = nullptr;
+    }
+
+    void add_subject(Subject *sj)
+    {
+        this->sj = sj;
+    }
+
+    void update()
+    {
+        cout << name << "：收到通知了。" << endl;
+    }
+};
+
+void Subject::notify()
+{
+    for (Observer *ob : ob_list)
+    {
+        ob->update();
+    }
+}
+
+void observer02(Subject *sj)
+{
+    Observer ob2("观察者2号");
+    ob2.add_subject(sj);
+    sj->add_observer(&ob2);
+
+    for (int i = 0; i < 10; i++)
+    {
+        cout << "-------->休眠-==" << i << endl;
+        this_thread::sleep_for(chrono::seconds(1));
+    }
+}
+
+int main()
+{
+    Observer ob("观察者1号");
+    Subject sj;
+
+    ob.add_subject(&sj);
+    sj.add_observer(&ob);
+
+    thread t(observer02, &sj);
+
+    int number = 0;
+    while (1)
+    {
+        number++;
+        cout << "number = " << number << endl;
+        if (number % 5 == 0)
+        {
+            sj.notify();
+        }
+        this_thread::sleep_for(chrono::microseconds (500));
+    }
+
+    return 0;
+}
+*/
+
+class Observer;
+
+class Subject
+{
+public:
+    virtual void add_observer(Observer *) = 0;
+    virtual void notify(string action) = 0;
+    virtual void remove_observer(Observer *) = 0;
+};
+
+class Observer
+{
+public:
+    Observer() = default;
+    virtual ~Observer() = default;
+    virtual void add_subject(Subject *sub) = 0;
+    virtual void update(string action) = 0;
+};
+
+class Monitor : public Subject
+{
+public:
+    void add_observer(Observer *ob)
+    {
+        ob_list.push_back(ob);
+    }
+
+    void remove_observer(Observer *ob)
+    {
+        ob_list.remove(ob);
+    }
+
+    void notify(string action) override
+    {
+        for (Observer *ob : ob_list)
+        {
+            ob->update(action);
+        }
+    }
+
+private:
+    list<Observer*> ob_list;
+};
+
+class NBAStudent : public Observer
+{
+public:
+    void add_subject(Subject *sub)
+    {
+        this->sub = sub;
+    }
+
+    void update(string action)
+    {
+        cout << "nba收到信息：" << action << " , 停止看NBA" << endl;
+    }
+
+    ~NBAStudent()
+    {
+        sub->remove_observer(this);
+    }
+
+public:
+    Subject *sub;
+
+};
+
+class GameStudent : public Observer
+{
+public:
+    void add_subject(Subject *sub)
+    {
+        this->sub = sub;
+    }
+
+    void update(string action)
+    {
+        cout << "game收到信息：" << action << " , 停止打game" << endl;
+    }
+
+    ~GameStudent()
+    {
+        sub->remove_observer(this);
+    }
+
+public:
+    Subject *sub;
+
+};
+
+int main()
+{
+    Subject *sj = new Monitor();
+    Observer *game = new GameStudent();
+    Observer *nba = new NBAStudent();
+
+    sj->add_observer(game);
+    sj->add_observer(nba);
+
+    game->add_subject(sj);
+    nba->add_subject(sj);
+
+    int number = 0;
+    while (1)
+    {
+        number++;
+        cout << "i == " << number << endl;
+        if (number % 30 == 0)
+        {
+            sj->notify("校长来了！");
+        }
+        else if (number % 20 == 0)
+        {
+            sj->notify("年级主任来了！");
+        }
+        else if (number % 10 == 0)
+        {
+            sj->notify("班主任来了！");
+        }
+
+        this_thread::sleep_for(chrono::microseconds(500));
+    }
 
     return 0;
 }
