@@ -1,8 +1,6 @@
 #ifndef TEST_H
 #define TEST_H
 
-//#include "test_exports.h"
-
 namespace test
 {
 
